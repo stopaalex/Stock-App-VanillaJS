@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Stock App</title>
+  <link rel="stylesheet"
+        href="style.css">
+  <link rel="stylesheet"
+        href="https://use.fontawesome.com/releases/v5.0.10/css/all.css"
+        integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg"
+        crossorigin="anonymous">
+
+
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <div class="header-text" id="headerText"></div>
+      <input type="text" id="symbolInput" class="symbol-input" placeholder="Enter a Symbol">
+      <button class="search" id="search"><i class="fa fa-search"></i></button>
+    </div>
+    <div class="body">
+      <div class="immediate-pricing" id="immediatePricing">
+        <div class="current-price">
+          <div class="current"></div>
+          <div class="prev-close"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="scripts.js"></script>
+</body>
+
+</html>
