@@ -138,6 +138,36 @@ button:active {
   align-items: flex-end;
 }
 
+.bar {
+  transition:  250ms;
+}
+
+.bar:hover {
+  transform: scale(1.2);
+  transform-origin: bottom;
+}
+
+.bar div {
+  transition: 500ms;
+}
+
+.bar:hover div {
+  transform: rotate(0deg) !important;
+  font-weight: 600;
+  background: #e7e7e7;
+  padding: 2px;
+}
+
+.days-change {
+  padding: 10px;
+  background: #e7e7e7;
+  width: calc(95% - 20px);
+}
+
+.days-change div {
+  display: inline-block;
+}
+
 .news-header {
   font-size: 1.5em;
   padding: 10px 5px;

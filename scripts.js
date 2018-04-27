@@ -7,6 +7,7 @@ const symbolSearch = document.querySelector('#symbolInput');
 const newsCont = document.querySelector('.news-container');
 const newsHeader = document.querySelector('.news-header');
 const chartCont = document.querySelector('#chartContainer');
+const EODPriceChange = document.querySelector('#daysChange');
 // const highPrice = document.querySelector('#high .price');
 // const lowPrice = document.querySelector('#low .price');
 
@@ -82,12 +83,10 @@ function getStockQuote() {
 
                     // CHART INFO
                     // CHART INFO
-
                     stockInfo.chartInfo.push({
                         close: stockInfo.prices.current
                     });
 
-                    console.log(stockInfo.chartInfo)
                     var chartMax = 0;
                     var chartMin = 0;
                     stockInfo.chartInfo.forEach(function(bar, index) {
@@ -95,7 +94,10 @@ function getStockQuote() {
                             chartMin = bar.close;
                         } else if (index > 0) {
                             if (bar.close < chartMin) {
-                                chartMin = bar.close - 5;
+                                chartMin = bar.close - (bar.close * .05);
+                                if ((bar.close * .05) < 5) {
+                                    chartMin = bar.close - 5;
+                                }
                             }
                         }
 
@@ -131,10 +133,28 @@ function getStockQuote() {
                         var distanceFromMin = bar.close - chartMin;
                         var percent = distanceFromMin / diff;
                         previousBar = bar.close;
-                        return '<div style="height:' +percent * 100 + '%;background:' + color + '; width: calc(4.16% - 0px);margin: 0 1px; display: inline-block; position: relative">' + '<div style="font-size: 0.7em; transform:rotate(-90deg); position: absolute; top: 20px; left: -50%; color:' + textColor + '">' + (Math.round(bar.close * 100) / 100).toFixed(2) + '</div>' + '</div>'
+                        return '<div class="bar" style="height:' +percent * 100 + '%;background:' + color + '; width: calc(4.16% - 0px);margin: 0 1px; display: inline-block; position: relative">' + '<div style="font-size: 0.7em; transform:rotate(-90deg); position: absolute; top: 20px; left: -0%; color:' + textColor + '">' + (Math.round(bar.close * 100) / 100).toFixed(2) + '</div>' + '</div>'
                     }).join('');
 
                     chartCont.innerHTML = chartHTML;
+
+                    // DAY CHANGE
+                    // DAY CHANGE
+                    var prevDay = EODPriceChange.querySelector('.previous-day');
+                    var today = EODPriceChange.querySelector('.today');
+                    var change = EODPriceChange.querySelector('.change');
+                    var todayNum = stockInfo.chartInfo.length - 1;
+                    var previousDayNum = stockInfo.chartInfo.length - 2;
+                    var color;
+
+                    prevDay.innerHTML = '$' + stockInfo.chartInfo[previousDayNum].close + ' - ';
+                    today.innerHTML = '$' + stockInfo.chartInfo[todayNum].close + ' = ';
+                    if ((Math.round((stockInfo.chartInfo[todayNum].close - stockInfo.chartInfo[previousDayNum].close) * 100) / 100) > 0) {
+                        color = 'green';
+                    } else {
+                        color = 'red';
+                    }
+                    change.innerHTML = '<span style="color:' + color + '">$' + Math.round((stockInfo.chartInfo[todayNum].close - stockInfo.chartInfo[previousDayNum].close) * 100) / 100 + '</span>'
 
                     // NEWS NEWS NEWS NEWS
                     // NEWS NEWS NEWS NEWS
