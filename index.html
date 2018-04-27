@@ -20,13 +20,21 @@
       <div class="header-text" id="headerText"></div>
       <input type="text" id="symbolInput" class="symbol-input" placeholder="Enter a Symbol">
       <button class="search" id="search"><i class="fa fa-search"></i></button>
+      <button class="repeat" id="repeat"><i class="fa fa-undo   "></i></button>
     </div>
     <div class="body">
-      <div class="immediate-pricing" id="immediatePricing">
-        <div class="current-price">
-          <div class="current"></div>
-          <div class="prev-close"></div>
+      <div class="body-left">
+        <div class="immediate-pricing" id="immediatePricing">
+          <div class="current-price">
+            <div class="current"></div>
+            <div class="prev-close"></div>
+          </div>
         </div>
+        <div class="chart-container" id="chartContainer"></div>
+      </div>
+      <div class="body-right">
+        <div class="news-header"></div>
+        <div class="news-container"></div>
       </div>
     </div>
   </div>

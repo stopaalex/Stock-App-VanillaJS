@@ -19,7 +19,7 @@ body {
 
 .symbol-input {
   position: absolute;
-  right: 30px;
+  right: 60px;
   bottom: 8px;
   border: none;
   border-bottom: 1px solid #e7e7e7;
@@ -28,7 +28,7 @@ body {
 
 .search {
   position:  absolute;
-  right: 0;
+  right: 30px;
   bottom: 8px;
   width: 25px;
   height: 25px;
@@ -37,6 +37,33 @@ body {
   align-items:  center;
   border-radius: 100%;
   border:  none;
+  outline: none;
+}
+
+.repeat {
+  position:  absolute;
+  right: 0px;
+  bottom: 8px;
+  width: 25px;
+  height: 25px;
+  display:  flex;
+  justify-content:  center;
+  align-items:  center;
+  border-radius: 100%;
+  border:  none;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover {
+  background: #cccccc
+}
+
+button:active {
+  background: #bbbbbb
 }
 
 .header-text span {
@@ -54,7 +81,17 @@ body {
 }
 
 .body {
-  padding: 10px;
+  padding: 20px;
+  display: flex;
+  height: calc(100% - 80px);
+}
+
+.body >div {
+  flex: 1;
+}
+
+.body >div:first-of-type {
+  border-right: 1px solid #e7e7e7;
 }
 
 .current .price-display {
@@ -66,6 +103,9 @@ body {
 
 .price-underline {
   border-bottom: 1px solid #e7e7e7;
+  padding-bottom: 2px;
+  display: flex;
+  padding-left: 10px;
 }
 
 .current-price {
@@ -86,4 +126,33 @@ body {
 
 .price-change {
   padding-right: 2px;
+  padding-left: 5px;
+}
+
+.chart-container {
+  height: 300px;
+  margin-top: 20px;
+  width: 95%;
+  border: 1px solid #e7e7e7;
+  display: flex;
+  align-items: flex-end;
+}
+
+.news-header {
+  font-size: 1.5em;
+  padding: 10px 5px;
+  margin: 10px;
+  border-bottom: 1px solid #e7e7e7
+}
+
+.news-container {
+  padding: 10px;
+}
+
+.news-container div {
+  padding: 5px;
+}
+
+.news-container div a {
+  text-decoration: none;
 }

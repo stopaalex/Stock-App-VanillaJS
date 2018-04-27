@@ -2,15 +2,18 @@
 const header = document.querySelector('#headerText');
 const currentPrice = document.querySelector('#immediatePricing .current-price');
 const searchBtn = document.querySelector('#search');
+const repeatBtn = document.querySelector('#repeat');
 const symbolSearch = document.querySelector('#symbolInput');
+const newsCont = document.querySelector('.news-container');
+const newsHeader = document.querySelector('.news-header');
+const chartCont = document.querySelector('#chartContainer');
 // const highPrice = document.querySelector('#high .price');
 // const lowPrice = document.querySelector('#low .price');
 
 var avAPIkey = '22RLQBUD3O1DBUDY';
 var symbol = 'FB'
-
-
-
+var stockUpdater;
+var updateLoop = false;
 
 function getStockQuote() {
     var symbolSearch = document.querySelector('#symbolInput');
@@ -21,7 +24,7 @@ function getStockQuote() {
     }
 
     var quoteURL = 'https://api.iextrading.com/1.0/stock/' + symbol + '/batch?types=quote,news,chart&range=1m&last=10';
-    
+
     fetch(quoteURL)
         .then(function (blob) {
             return blob.json()
@@ -41,22 +44,30 @@ function getStockQuote() {
                             current: stock.latestPrice,
                             high: stock.high,
                             low: stock.low
-                        }
-                    }
-
-                    var currentChange = Math.round(((Math.round(stockInfo.prices.current * 100) / 100) - (Math.round(stockInfo.prices.prevClose * 100) / 100)) * 100) / 100;
-                    var changeDir = '';
-                    if (currentChange >= 0) {
-                        changeDir = '+';
-                    } else {
-                        changeDir = '';
+                        },
+                        news: data.news,
+                        chartInfo: data.chart
                     }
 
                     header.innerHTML = '<span class="symbol">' + stockInfo.info.symbol + '</span>' + '<span class="name">' + stockInfo.info.name + '</span>' + '<span class="exchange">' + stockInfo.info.exchange + '</span>';
+
+                    // CURRENT PRICE
+                    // CURRENT PRICE
+                    var currentChange = Math.round(((Math.round(stockInfo.prices.current * 100) / 100) - (Math.round(stockInfo.prices.prevClose * 100) / 100)) * 100) / 100;
+                    var changeDir = '';
+                    var changeDirArrow = '';
+                    if (currentChange >= 0) {
+                        changeDir = '+';
+                        changeDirArrow = 'arrow-up';
+                    } else {
+                        changeDir = '';
+                        changeDirArrow = 'arrow-down';
+                    }
+
                     var currentPriceCurrent = currentPrice.querySelector('.current');
-                    currentPriceCurrent.innerHTML = '<div class="adjust-color price-display">' + Math.round(stockInfo.prices.current * 100) / 100 + '</div>' + '<span class="price-underline">' + ' <div class="adjust-color price-change">' + ' $' + changeDir + currentChange + '</div>' + '</span>';
+                    currentPriceCurrent.innerHTML = '<div class="adjust-color price-display"> $' + Math.round(stockInfo.prices.current * 100) / 100 + '</div>' + '<span class="price-underline">' + ' USD ' + ' <div class="adjust-color price-change">' + changeDir + currentChange + '<i class="fa fa-' + changeDirArrow + '" style="font-size:0.75em"></i>' + '</div>' + '</span>';
                     var currentPricePrev = currentPrice.querySelector('.prev-close');
-                    currentPricePrev.textContent = (Math.round(stockInfo.prices.prevClose * 100) / 100);
+                    currentPricePrev.textContent = '$' + (Math.round(stockInfo.prices.prevClose * 100) / 100);
 
                     var adjustColors = document.querySelectorAll('.adjust-color');
                     if (changeDir === '+') {
@@ -69,89 +80,110 @@ function getStockQuote() {
                         });
                     }
 
+                    // CHART INFO
+                    // CHART INFO
+
+                    stockInfo.chartInfo.push({
+                        close: stockInfo.prices.current
+                    });
+
+                    console.log(stockInfo.chartInfo)
+                    var chartMax = 0;
+                    var chartMin = 0;
+                    stockInfo.chartInfo.forEach(function(bar, index) {
+                        if (index === 0) {
+                            chartMin = bar.close;
+                        } else if (index > 0) {
+                            if (bar.close < chartMin) {
+                                chartMin = bar.close - 5;
+                            }
+                        }
+
+                        if (bar.close > chartMax) {
+                            chartMax = bar.close + 1;
+                        }
+                    });
+
+                    var diff = chartMax - chartMin;
+
+                    var previousBar = 0;
+                    var chartHTML = stockInfo.chartInfo.map(function(bar, index) {
+                        var color = 'rgba(0,150,0,0.5)';
+                        var textColor;  
+                        if (index === 0) {
+                            previousBar = bar.close
+                        } else if (index > 0) {
+                            if (bar.close > previousBar) {
+                                color = 'rgba(0,150,0,0.5)';
+                            } else {
+                                color = 'rgba(150,0,0,0.5)'
+                            }
+                        }
+                        if (index === stockInfo.chartInfo.length - 1) {
+                            if (bar.close > previousBar) {
+                                color = 'rgba(0,150,0,0.75)';
+                                textColor = '#FFFFFF';
+                            } else {
+                                color = 'rgba(150,0,0,0.75)'
+                                textColor = '#FFFFFF';
+                            }
+                        }
+                        var distanceFromMin = bar.close - chartMin;
+                        var percent = distanceFromMin / diff;
+                        previousBar = bar.close;
+                        return '<div style="height:' +percent * 100 + '%;background:' + color + '; width: calc(4.16% - 0px);margin: 0 1px; display: inline-block; position: relative">' + '<div style="font-size: 0.7em; transform:rotate(-90deg); position: absolute; top: 20px; left: -50%; color:' + textColor + '">' + (Math.round(bar.close * 100) / 100).toFixed(2) + '</div>' + '</div>'
+                    }).join('');
+
+                    chartCont.innerHTML = chartHTML;
+
+                    // NEWS NEWS NEWS NEWS
+                    // NEWS NEWS NEWS NEWS
+                    var newsHtml = stockInfo.news.map(function (newsItem) {
+                        // console.log(newsItem);
+                        return '<div><a href="' + newsItem.url + '" target="_blank">' + newsItem.headline + '</a></div>';
+                    }).join('');
+
+                    // console.log(newsHtml);
+                    newsCont.innerHTML = newsHtml;
+                    newsHeader.textContent = 'News about ' + stockInfo.info.name;
+
                 });
         });
 }
 
+function setUpdateLoop() {
+    if (!updateLoop) {
+        stockUpdater = setInterval(function () {
+            getStockQuote();
+        }, 2000);
+        repeatBtn.querySelector('i').classList.add('fa-pause');
+        repeatBtn.querySelector('i').classList.remove('fa-undo');
+    } else {
+        clearInterval(stockUpdater);
+        updateLoop = !updateLoop;
+        repeatBtn.querySelector('i').classList.remove('fa-pause');
+        repeatBtn.querySelector('i').classList.add('fa-undo');
+    }
+    updateLoop = !updateLoop;
+}
 
-function originalGetStockQuote() {
-    // var urlCurrent = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=' + symbol + '&interval=1min&apikey=' + avAPIkey + '';
-    // var urlDaily = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=' + symbol + '&interval=1min&apikey=' + avAPIkey + '';
+function isEnterPressed(e) {
+    var inputFocused = (document.activeElement === (document.querySelector('#symbolInput')));
+    if (e.key === 'Enter' && inputFocused) {
+        getStockQuote();
+    } else {
+        return
+    }
 
-    // var apiArray = [
-    //     fetch(urlCurrent)
-    //         .then(function (blob) {
-    //             return blob.json()
-    //                 .then(function (data) {
-    //                     return data;
-    //                 })
-    //         }),
-    //     fetch(urlDaily)
-    //         .then(function (blob) {
-    //             return blob.json()
-    //                 .then(function (data) {
-    //                     return data;
-    //                 })
-    //         })
-    // ]
-
-    // Promise.all(apiArray)
-    //     .then(function (data) {
-
-    //         var tempDate = new Date();
-    //         var date = {
-    //             year: tempDate.getFullYear(),
-    //             month: tempDate.getMonth() + 1,
-    //             day: tempDate.getDate(),
-    //             hour: tempDate.getHours(),
-    //             min: tempDate.getMinutes(),
-    //         }
-    //         var dateFormated = date.year + '-' + ('0' + date.month).slice(-2) + '-' + ('0' + date.day).slice(-2);
-    //         var prevDateFormated = date.year + '-' + ('0' + date.month).slice(-2) + '-' + ('0' + (date.day - 1)).slice(-2);
-    //         var dateTimeFormated = date.year + '-' + ('0' + date.month).slice(-2) + '-' + ('0' + date.day).slice(-2) + ' ' + ('0' + date.hour).slice(-2) + ':' + ('0' + date.min).slice(-2) + ':00';
-
-    //         var dailyQuotes = {
-    //             info: data[1]['Meta Data'],
-    //             prices: data[1]['Time Series (Daily)']
-    //         };
-
-    //         var currentQuotes = {
-    //             info: data[0]['Meta Data'],
-    //             prices: data[0]['Time Series (1min)']
-    //         };
-
-    //         // changing date if price isn't updated in time to previous minute
-    //         if (currentQuotes.prices[dateTimeFormated] === undefined) {
-    //             var dateTimeFormated = date.year + '-' + ('0' + date.month).slice(-2) + '-' + ('0' + date.day).slice(-2) + ' ' + ('0' + date.hour).slice(-2) + ':' + ('0' + (date.min - 1)).slice(-2) + ':00';
-    //         }
-
-    //         var stockInfo = {
-    //             info: {
-    //                 name: dailyQuotes.info['2. Symbol']
-    //             },
-    //             prices: {
-    //                 open: dailyQuotes.prices[dateFormated]['1. open'],
-    //                 prevClose: dailyQuotes.prices[prevDateFormated]['4. close'],
-    //                 current: currentQuotes.prices[dateTimeFormated]['1. open'],
-    //                 high: dailyQuotes.prices[dateFormated]['2. high'],
-    //                 low: dailyQuotes.prices[dateFormated]['3. low']
-    //             }
-    //         }
-
-    //         console.log(stockInfo);
-    //         // console.log(dailyQuotes);
-    //         // console.log(currentQuotes);
-
-
-
-    //     });
 }
 
 function initialize() {
-    // originalGetStockQuote();
     getStockQuote();
 
     searchBtn.addEventListener('click', getStockQuote);
+    repeatBtn.addEventListener('click', setUpdateLoop);
+
+    window.addEventListener('keypress', isEnterPressed);    
 }
 
 initialize();
