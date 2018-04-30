@@ -8,6 +8,7 @@ const newsCont = document.querySelector('.news-container');
 const newsHeader = document.querySelector('.news-header');
 const chartCont = document.querySelector('#chartContainer');
 const EODPriceChange = document.querySelector('#daysChange');
+const displayTypeahead = document.querySelector('.display-typeahead');
 // const highPrice = document.querySelector('#high .price');
 // const lowPrice = document.querySelector('#low .price');
 
@@ -15,6 +16,10 @@ var avAPIkey = '22RLQBUD3O1DBUDY';
 var symbol = 'FB'
 var stockUpdater;
 var updateLoop = false;
+var exactMatchArray = [];
+var matchArray = [];
+var companies = [];
+var selectedListEle;
 
 function getStockQuote() {
     var symbolSearch = document.querySelector('#symbolInput');
@@ -189,35 +194,83 @@ function setUpdateLoop() {
 
 function isEnterPressed(e) {
     var inputFocused = (document.activeElement === (document.querySelector('#symbolInput')));
+    
     if (e.key === 'Enter' && inputFocused) {
         getStockQuote();
     } else if (e.key !== 'Enter' && inputFocused) {
         searchCompaniesForMatch(e)
+    } else if (e.key === 'Enter' && !inputFocused && displayTypeahead.style.opacity === '1') {
+        var listItemSelected = (document.activeElement === (document.querySelector('#' + selectedListEle.id)));
+        document.querySelector('#symbolInput').value = selectedListEle.id;
+        selectCompany(selectedListEle.id);
     } else {
         return
     }
 }
 
 function searchCompaniesForMatch(e) {
+    displayTypeahead.style.opacity = '1';
+    var matchedList = document.querySelector('.display-typeahead #matched-list');
     var inputText = document.querySelector('#symbolInput').value;
     inputText = (inputText + e.key).toUpperCase();
-    var exactMatchArray = [];
-    var matchArray = [];
-
-    var companies = NasdaqCompanies.concat(NYSECompanies);
-
+    exactMatchArray = [];
+    matchArray = [];
+    
+    companies = NasdaqCompanies.concat(NYSECompanies);
+    
     companies.forEach(function(company) {
         // console.clear();
         if (company.Symbol === inputText) {
             exactMatchArray.push(company);
-            console.log(exactMatchArray);
         }
         if (company.Symbol.includes(inputText)) {
             matchArray.push(company);
-            console.log(matchArray);
-        } else {
         }
     });
+    
+    var matches = exactMatchArray.concat(matchArray);
+    var listHTML = matches.map(function(match) {
+        return '<li class="matched-company" tabindex="-1" id="' + match.Symbol + '" onclick="selectCompany(this.id)"> ' + match.Symbol + ' | ' + match.Name + '</li>'
+    }).join('');
+    matchedList.innerHTML = listHTML;
+}
+
+function navigateMatchedLi(e) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        console.log(e.key);
+    } else {
+        return
+    }
+
+    var list = Array.from(document.querySelectorAll('.matched-company'));
+    var inputFocused = (document.activeElement === (document.querySelector('#symbolInput')));
+
+
+    if (e.key === 'ArrowDown' && displayTypeahead.style.opacity === '1') {
+        if (inputFocused) {
+            selectedListEle = list[0];
+        } else {
+            selectedListEle = selectedListEle.nextElementSibling;
+        }
+        setTimeout(function() {
+            selectedListEle.focus();
+        }, 100);
+    } else if (e.key === 'ArrowUp' && displayTypeahead.style.opacity === '1') {
+        selectedListEle = selectedListEle.previousElementSibling
+        setTimeout(function() {
+            selectedListEle.focus();
+        }, 100);
+    } else {
+        return
+    }
+}
+
+function selectCompany(symbol) {
+    document.querySelector('#symbolInput').value = symbol;
+    displayTypeahead.style.opacity = '0';
+    exactMatchArray = [];
+    matchArray = [];
+    getStockQuote();
 }
 
 function initialize() {
@@ -227,6 +280,7 @@ function initialize() {
     repeatBtn.addEventListener('click', setUpdateLoop);
 
     window.addEventListener('keypress', isEnterPressed);
+    window.addEventListener('keydown', navigateMatchedLi);
 }
 
 initialize();
