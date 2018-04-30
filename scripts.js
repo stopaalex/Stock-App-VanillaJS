@@ -37,6 +37,8 @@ function getStockQuote() {
                 .then(function (data) {
 
                     var stock = data.quote;
+                    
+                    // console.log(data);
 
                     var stockInfo = {
                         info: {
@@ -49,7 +51,10 @@ function getStockQuote() {
                             prevClose: stock.close,
                             current: stock.latestPrice,
                             high: stock.high,
-                            low: stock.low
+                            week52High: stock.week52High,
+                            week52Low: stock.week52Low,
+                            marketCap: stock.marketCap,
+                            low: stock.low,
                         },
                         news: data.news,
                         chartInfo: data.chart
@@ -161,6 +166,16 @@ function getStockQuote() {
                     }
                     change.innerHTML = '<span style="color:' + color + '">$' + Math.round((stockInfo.chartInfo[todayNum].close - stockInfo.chartInfo[previousDayNum].close) * 100) / 100 + '</span>'
 
+                    var dayHigh = document.querySelector('#dayHigh');
+                    var Week52High = document.querySelector('#week52High');
+                    var dayLow = document.querySelector('#dayLow');
+                    var week52Low = document.querySelector('#week52Low');
+
+                    dayHigh.innerHTML = '<div class="price-label">Day High: </div><div class="price">' + stockInfo.prices.high + '</div>';
+                    week52High.innerHTML = '<div class="price-label">52 Week High: </div><div class="price">' + stockInfo.prices.week52High + '</div>';
+                    dayLow.innerHTML = '<div class="price-label">Day Low: </div><div class="price">' + stockInfo.prices.low + '</div>';
+                    week52Low.innerHTML = '<div class="price-label"> 52 Week Low: </div><div class="price">' + stockInfo.prices.week52Low + '</div>';
+
                     // NEWS NEWS NEWS NEWS
                     // NEWS NEWS NEWS NEWS
                     var newsHtml = stockInfo.news.map(function (newsItem) {
@@ -219,6 +234,8 @@ function searchCompaniesForMatch(e) {
     }
     exactMatchArray = [];
     matchArray = [];
+    exactMatchArrayName = [];
+    matchArrayName = [];
     
     companies = NasdaqCompanies.concat(NYSECompanies);
     
@@ -231,9 +248,24 @@ function searchCompaniesForMatch(e) {
             matchArray.push(company);
         }
     });
-    
     var matches = exactMatchArray.concat(matchArray);
-    var listHTML = matches.map(function(match) {
+
+    companies.forEach(function(company) {
+        if ((company.Name).toUpperCase() === inputText) {
+            exactMatchArrayName.push(company);
+        }
+        if (company.Name.toUpperCase().includes(inputText)) {
+            matchArrayName.push(company);
+        }
+    });
+    var nameMatches = exactMatchArrayName.concat(matchArrayName);  
+
+    var allMatches = matches.concat(nameMatches);
+    // if (matches.length === 0) {
+    //     matches = nameMatches;
+    // }
+
+    var listHTML = allMatches.map(function(match) {
         return '<li class="matched-company" tabindex="-1" id="' + match.Symbol + '" onclick="selectCompany(this.id)"> ' + match.Symbol + ' | ' + match.Name + '</li>'
     }).join('');
     var noListHTML = '<li class="matched-company">No Matches...</li>';
@@ -268,6 +300,9 @@ function navigateMatchedLi(e) {
             selectedListEle.focus();
         }, 100);
     } else if (e.key === 'ArrowUp' && displayTypeahead.style.opacity === '1') {
+        if (!selectedListEle.previousElementSibling) {
+            document.querySelector('#symbolInput').focus();
+        }
         selectedListEle = selectedListEle.previousElementSibling
         setTimeout(function() {
             selectedListEle.focus();
