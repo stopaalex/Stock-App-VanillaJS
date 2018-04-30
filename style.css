@@ -227,6 +227,7 @@ button:active {
   position: absolute !important;
   z-index: 1 !important;
   left: -30% !important;
+  right: 0 !important;
 }
 
 .days-change {
