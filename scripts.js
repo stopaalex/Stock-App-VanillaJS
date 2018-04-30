@@ -212,7 +212,11 @@ function searchCompaniesForMatch(e) {
     displayTypeahead.style.opacity = '1';
     var matchedList = document.querySelector('.display-typeahead #matched-list');
     var inputText = document.querySelector('#symbolInput').value;
-    inputText = (inputText + e.key).toUpperCase();
+    if (e.key === 'Backspace') {
+        inputText = inputText.toUpperCase();
+    } else {
+        inputText = (inputText + e.key).toUpperCase();
+    }
     exactMatchArray = [];
     matchArray = [];
     
@@ -232,10 +236,18 @@ function searchCompaniesForMatch(e) {
     var listHTML = matches.map(function(match) {
         return '<li class="matched-company" tabindex="-1" id="' + match.Symbol + '" onclick="selectCompany(this.id)"> ' + match.Symbol + ' | ' + match.Name + '</li>'
     }).join('');
+    var noListHTML = '<li class="matched-company">No Matches...</li>';
     matchedList.innerHTML = listHTML;
+    if (!listHTML) {
+        matchedList.innerHTML = noListHTML;
+    }
 }
 
 function navigateMatchedLi(e) {
+    if (e.key === 'Backspace') {
+        searchCompaniesForMatch(e);
+        return;
+    }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         console.log(e.key);
     } else {
