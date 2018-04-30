@@ -89,7 +89,7 @@ function getStockQuote() {
 
                     var chartMax = 0;
                     var chartMin = 0;
-                    stockInfo.chartInfo.forEach(function(bar, index) {
+                    stockInfo.chartInfo.forEach(function (bar, index) {
                         if (index === 0) {
                             chartMin = bar.close;
                         } else if (index > 0) {
@@ -109,9 +109,9 @@ function getStockQuote() {
                     var diff = chartMax - chartMin;
 
                     var previousBar = 0;
-                    var chartHTML = stockInfo.chartInfo.map(function(bar, index) {
+                    var chartHTML = stockInfo.chartInfo.map(function (bar, index) {
                         var color = 'rgba(0,150,0,0.5)';
-                        var textColor;  
+                        var textColor;
                         if (index === 0) {
                             previousBar = bar.close
                         } else if (index > 0) {
@@ -133,7 +133,7 @@ function getStockQuote() {
                         var distanceFromMin = bar.close - chartMin;
                         var percent = distanceFromMin / diff;
                         previousBar = bar.close;
-                        return '<div class="bar" style="height:' +percent * 100 + '%;background:' + color + '; width: calc(4.16% - 0px);margin: 0 1px; display: inline-block; position: relative">' + '<div style="font-size: 0.7em; transform:rotate(-90deg); position: absolute; top: 20px; left: -0%; color:' + textColor + '">' + (Math.round(bar.close * 100) / 100).toFixed(2) + '</div>' + '</div>'
+                        return '<div class="bar" style="height:' + percent * 100 + '%;background:' + color + '; width: calc(4.16% - 0px);margin: 0 1px; display: inline-block; position: relative">' + '<div style="font-size: 0.7em; transform:rotate(-90deg); position: absolute; top: 20px; left: -0%; color:' + textColor + '">' + (Math.round(bar.close * 100) / 100).toFixed(2) + '</div>' + '</div>'
                     }).join('');
 
                     chartCont.innerHTML = chartHTML;
@@ -191,10 +191,33 @@ function isEnterPressed(e) {
     var inputFocused = (document.activeElement === (document.querySelector('#symbolInput')));
     if (e.key === 'Enter' && inputFocused) {
         getStockQuote();
+    } else if (e.key !== 'Enter' && inputFocused) {
+        searchCompaniesForMatch(e)
     } else {
         return
     }
+}
 
+function searchCompaniesForMatch(e) {
+    var inputText = document.querySelector('#symbolInput').value;
+    inputText = (inputText + e.key).toUpperCase();
+    var exactMatchArray = [];
+    var matchArray = [];
+
+    var companies = NasdaqCompanies.concat(NYSECompanies);
+
+    companies.forEach(function(company) {
+        // console.clear();
+        if (company.Symbol === inputText) {
+            exactMatchArray.push(company);
+            console.log(exactMatchArray);
+        }
+        if (company.Symbol.includes(inputText)) {
+            matchArray.push(company);
+            console.log(matchArray);
+        } else {
+        }
+    });
 }
 
 function initialize() {
@@ -203,7 +226,7 @@ function initialize() {
     searchBtn.addEventListener('click', getStockQuote);
     repeatBtn.addEventListener('click', setUpdateLoop);
 
-    window.addEventListener('keypress', isEnterPressed);    
+    window.addEventListener('keypress', isEnterPressed);
 }
 
 initialize();
