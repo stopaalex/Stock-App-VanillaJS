@@ -3,6 +3,7 @@ const header = document.querySelector('#headerText');
 const currentPrice = document.querySelector('#immediatePricing .current-price');
 const searchBtn = document.querySelector('#search');
 const repeatBtn = document.querySelector('#repeat');
+const saveBtn = document.querySelector('#save');
 const symbolSearch = document.querySelector('#symbolInput');
 const newsCont = document.querySelector('.news-container');
 const newsHeader = document.querySelector('.news-header');
@@ -20,6 +21,7 @@ var exactMatchArray = [];
 var matchArray = [];
 var companies = [];
 var selectedListEle;
+var symbolsSaved = [];
 
 function getStockQuote() {
     var symbolSearch = document.querySelector('#symbolInput');
@@ -320,11 +322,56 @@ function selectCompany(symbol) {
     getStockQuote();
 }
 
+function saveStockToLocalStorage() {
+    var symbolAlreadySaved = false;
+    var symbolToSave = {
+        symbol: document.querySelector('.symbol').textContent
+    }
+   symbolsSaved.forEach(function(symbol) {
+       if (symbolToSave.symbol === symbol.symbol) {
+           symbolAlreadySaved = true;
+       }
+   });
+   if (!symbolAlreadySaved) {
+       symbolsSaved.push(symbolToSave);
+   } else {
+       return
+   }
+    window.localStorage.setItem('savedStockSymbols', JSON.stringify(symbolsSaved));
+}
+
+function getSavedStocks() {
+    symbolsSaved = JSON.parse(window.localStorage.getItem('savedStockSymbols'));
+    if (!symbolsSaved) {
+        symbolsSaved = [];
+    }
+    getSavedStockInfo();
+}
+
+function getSavedStockInfo() {
+    var symbolString = symbolsSaved.map(function(symbol) {
+        return symbol.symbol;
+    }).join(',');
+    
+    var savedStockUrl = 'https://api.iextrading.com/1.0/stock/market/batch?symbols=' + symbolString+ '&types=quote,news,chart&range=1m&last=5';
+
+    fetch(savedStockUrl)
+        .then(function(blob) {
+            return blob.json()
+            .then(function(data) {
+                console.log(data);
+            });
+        });
+}
+
 function initialize() {
     getStockQuote();
 
+    getSavedStocks();
+
     searchBtn.addEventListener('click', getStockQuote);
     repeatBtn.addEventListener('click', setUpdateLoop);
+    saveBtn.addEventListener('click', saveStockToLocalStorage);
 
     window.addEventListener('keypress', isEnterPressed);
     window.addEventListener('keydown', navigateMatchedLi);
