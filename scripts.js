@@ -10,6 +10,7 @@ const newsHeader = document.querySelector('.news-header');
 const chartCont = document.querySelector('#chartContainer');
 const EODPriceChange = document.querySelector('#daysChange');
 const displayTypeahead = document.querySelector('.display-typeahead');
+const footerContern = document.querySelector('#footerContent');
 // const highPrice = document.querySelector('#high .price');
 // const lowPrice = document.querySelector('#low .price');
 
@@ -359,7 +360,11 @@ function getSavedStockInfo() {
         .then(function(blob) {
             return blob.json()
             .then(function(data) {
-                console.log(data);
+                var savedStockInfo = [];
+                symbolsSaved.forEach(function(stock) {
+                    var symbol = stock.symbol;
+                    console.log(data[symbol]);
+                });
             });
         });
 }
