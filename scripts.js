@@ -384,7 +384,7 @@ function getSavedStockInfo() {
                         } else if (stock.quote.latestPrice < stock.quote.previousClose) {
                             color = 'red';
                         }
-                        return '<div class="saved-stock"><div class="stock-name ">' + stock.quote.symbol + ' | ' + stock.quote.companyName + '</div><div class="price" style="color:' + color + '">' + stock.quote.latestPrice + '</div></div>';
+                        return '<div class="saved-stock"><div class="stock-name" onclick="selectCompany(this.id)" id="' + stock.quote.symbol + '">' + stock.quote.symbol + ' | ' + stock.quote.companyName + '</div><div class="price" style="color:' + color + '">' + stock.quote.latestPrice + '</div></div>';
                     }).join('');
 
                     footerContent.innerHTML = savedStockHTML;

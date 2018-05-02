@@ -267,6 +267,15 @@ button:active {
 
 .news-container div {
   padding: 5px;
+  cursor:  pointer;margin: 2px;
+}
+
+.news-container div a {
+    color: #000000;
+}
+
+.news-container div:hover {
+    background: #f2f2f2;
 }
 
 .news-container div a {
@@ -327,6 +336,11 @@ button:active {
 .saved-stock {
   display:  flex;
   margin: 0 15px;
+}
+
+.saved-stock:hover {
+  cursor: pointer;
+  background: #f2f2f2;
 }
 
 .footer-content {
