@@ -31,7 +31,7 @@
       </button>
       <button class="repeat"
               id="repeat">
-        <i class="fa fa-undo   "></i>
+        <i class="fa fa-undo"></i>
       </button>
     </div>
     <div class="body">
@@ -72,6 +72,8 @@
     </div>
     <div class="footer">
       <div class="footer-content" id="footerContent"></div>
+      <button class="ticker pause-ticker" onclick="stopSavedStockInterval()"><i class="fa fa-pause"></i></button>
+      <button class="ticker play-ticker"  onclick="createSavedStockInterval()"><i class="fa fa-undo"></i></button>
     </div>
   </div>
   <script src="companies.js"></script>

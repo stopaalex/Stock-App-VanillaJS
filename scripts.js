@@ -10,7 +10,9 @@ const newsHeader = document.querySelector('.news-header');
 const chartCont = document.querySelector('#chartContainer');
 const EODPriceChange = document.querySelector('#daysChange');
 const displayTypeahead = document.querySelector('.display-typeahead');
-const footerContern = document.querySelector('#footerContent');
+const footerContent = document.querySelector('#footerContent');
+const pauseTicker = document.querySelector('.pause-ticker');
+const playTicker = document.querySelector('.play-ticker');
 // const highPrice = document.querySelector('#high .price');
 // const lowPrice = document.querySelector('#low .price');
 
@@ -23,6 +25,13 @@ var matchArray = [];
 var companies = [];
 var selectedListEle;
 var symbolsSaved = [];
+
+var savedStockIntervalPause = false;
+var savedStockInterval = setInterval(function () {
+    if (!savedStockIntervalPause) {
+        getSavedStocks();
+    }
+}, 500);
 
 function getStockQuote() {
     var symbolSearch = document.querySelector('#symbolInput');
@@ -40,7 +49,7 @@ function getStockQuote() {
                 .then(function (data) {
 
                     var stock = data.quote;
-                    
+
                     // console.log(data);
 
                     var stockInfo = {
@@ -212,7 +221,7 @@ function setUpdateLoop() {
 
 function isEnterPressed(e) {
     var inputFocused = (document.activeElement === (document.querySelector('#symbolInput')));
-    
+
     if (e.key === 'Enter' && inputFocused) {
         getStockQuote();
     } else if (e.key !== 'Enter' && inputFocused) {
@@ -239,10 +248,10 @@ function searchCompaniesForMatch(e) {
     matchArray = [];
     exactMatchArrayName = [];
     matchArrayName = [];
-    
+
     companies = NasdaqCompanies.concat(NYSECompanies);
-    
-    companies.forEach(function(company) {
+
+    companies.forEach(function (company) {
         // console.clear();
         if (company.Symbol === inputText) {
             exactMatchArray.push(company);
@@ -253,7 +262,7 @@ function searchCompaniesForMatch(e) {
     });
     var matches = exactMatchArray.concat(matchArray);
 
-    companies.forEach(function(company) {
+    companies.forEach(function (company) {
         if ((company.Name).toUpperCase() === inputText) {
             exactMatchArrayName.push(company);
         }
@@ -261,14 +270,11 @@ function searchCompaniesForMatch(e) {
             matchArrayName.push(company);
         }
     });
-    var nameMatches = exactMatchArrayName.concat(matchArrayName);  
+    var nameMatches = exactMatchArrayName.concat(matchArrayName);
 
     var allMatches = matches.concat(nameMatches);
-    // if (matches.length === 0) {
-    //     matches = nameMatches;
-    // }
 
-    var listHTML = allMatches.map(function(match) {
+    var listHTML = allMatches.map(function (match) {
         return '<li class="matched-company" tabindex="-1" id="' + match.Symbol + '" onclick="selectCompany(this.id)"> ' + match.Symbol + ' | ' + match.Name + '</li>'
     }).join('');
     var noListHTML = '<li class="matched-company">No Matches...</li>';
@@ -299,7 +305,7 @@ function navigateMatchedLi(e) {
         } else {
             selectedListEle = selectedListEle.nextElementSibling;
         }
-        setTimeout(function() {
+        setTimeout(function () {
             selectedListEle.focus();
         }, 100);
     } else if (e.key === 'ArrowUp' && displayTypeahead.style.opacity === '1') {
@@ -307,7 +313,7 @@ function navigateMatchedLi(e) {
             document.querySelector('#symbolInput').focus();
         }
         selectedListEle = selectedListEle.previousElementSibling
-        setTimeout(function() {
+        setTimeout(function () {
             selectedListEle.focus();
         }, 100);
     } else {
@@ -328,16 +334,16 @@ function saveStockToLocalStorage() {
     var symbolToSave = {
         symbol: document.querySelector('.symbol').textContent
     }
-   symbolsSaved.forEach(function(symbol) {
-       if (symbolToSave.symbol === symbol.symbol) {
-           symbolAlreadySaved = true;
-       }
-   });
-   if (!symbolAlreadySaved) {
-       symbolsSaved.push(symbolToSave);
-   } else {
-       return
-   }
+    symbolsSaved.forEach(function (symbol) {
+        if (symbolToSave.symbol === symbol.symbol) {
+            symbolAlreadySaved = true;
+        }
+    });
+    if (!symbolAlreadySaved) {
+        symbolsSaved.push(symbolToSave);
+    } else {
+        return
+    }
     window.localStorage.setItem('savedStockSymbols', JSON.stringify(symbolsSaved));
 }
 
@@ -350,29 +356,60 @@ function getSavedStocks() {
 }
 
 function getSavedStockInfo() {
-    var symbolString = symbolsSaved.map(function(symbol) {
+    var symbolString = symbolsSaved.map(function (symbol) {
         return symbol.symbol;
     }).join(',');
-    
-    var savedStockUrl = 'https://api.iextrading.com/1.0/stock/market/batch?symbols=' + symbolString+ '&types=quote,news,chart&range=1m&last=5';
+
+    var savedStockUrl = 'https://api.iextrading.com/1.0/stock/market/batch?symbols=' + symbolString + '&types=quote,news,chart&range=1m&last=5';
 
     fetch(savedStockUrl)
-        .then(function(blob) {
+        .then(function (blob) {
             return blob.json()
-            .then(function(data) {
-                var savedStockInfo = [];
-                symbolsSaved.forEach(function(stock) {
-                    var symbol = stock.symbol;
-                    console.log(data[symbol]);
+                .then(function (data) {
+                    var savedStockInfo = [];
+                    // console.log(data);
+
+                    symbolsSaved.forEach(function (stock) {
+                        var symbol = stock.symbol;
+                        // console.log(data[symbol]);
+                        var savedStock = data[symbol];
+                        savedStockInfo.push((savedStock));
+                    });
+
+                    var savedStockHTML = savedStockInfo.map(function (stock) {
+                        var color;
+                        // console.log(stock.quote);
+                        if (stock.quote.latestPrice > stock.quote.previousClose) {
+                            color = 'green';
+                        } else if (stock.quote.latestPrice < stock.quote.previousClose) {
+                            color = 'red';
+                        }
+                        return '<div class="saved-stock"><div class="stock-name ">' + stock.quote.symbol + ' | ' + stock.quote.companyName + '</div><div class="price" style="color:' + color + '">' + stock.quote.latestPrice + '</div></div>';
+                    }).join('');
+
+                    footerContent.innerHTML = savedStockHTML;
                 });
-            });
         });
+}
+
+function createSavedStockInterval() {
+    playTicker.style.display = 'none';
+    pauseTicker.style.display = 'flex';
+    savedStockIntervalPause = false;
+}
+
+function stopSavedStockInterval() {
+    // clearInterval(savedStockInterval);
+    savedStockIntervalPause = true;
+    playTicker.style.display = 'flex';
+    pauseTicker.style.display = 'none'
+
 }
 
 function initialize() {
     getStockQuote();
 
-    getSavedStocks();
+    createSavedStockInterval();
 
     searchBtn.addEventListener('click', getStockQuote);
     repeatBtn.addEventListener('click', setUpdateLoop);
