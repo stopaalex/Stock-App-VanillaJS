@@ -421,7 +421,7 @@ function getExpandedInfo() {
                         savedStockInfo.push((savedStock));
                     });
 
-                    var savedStockHTML = savedStockInfo.map(function (stock) {
+                    var savedStockExpandedHTML = savedStockInfo.map(function (stock) {
                         var color;
                         // console.log(stock.quote);
                         if (stock.quote.latestPrice > stock.quote.previousClose) {
@@ -429,10 +429,15 @@ function getExpandedInfo() {
                         } else if (stock.quote.latestPrice < stock.quote.previousClose) {
                             color = 'red';
                         }
-                        return ;
+                        var priceChange = Math.round((stock.quote.latestPrice - stock.quote.previousClose) * 100) / 100;
+                        var priceChangePer = ((stock.quote.latestPrice / stock.quote.previousClose) * 100) - 100;
+                        var priceChangePercent = Math.round(priceChangePer * 100) / 100;
+                        var textHTML = '<div class="company-name">'+ stock.quote.companyName + '</div><div class="exchange-symbol">' + stock.quote.primaryExchange + ': ' + stock.quote.symbol + '</div>';
+                        var priceHTML = '<div lcass="company-current-price">' + stock.quote.latestPrice + '</div><div class="company-price-change" style="color:' + color +'">' + priceChange + '(' + priceChangePercent + '%)' + '</div>';
+                        return '<div class="footer-stock-container"><div class="footer-stock-text">' + textHTML + '</div><div class="footer-stock-price">' + priceHTML + '</div></div>';
                     }).join('');
 
-                    footerContent.innerHTML = savedStockHTML;
+                    footerContentExpanded.innerHTML = savedStockExpandedHTML;
                 });
         });
 }
@@ -452,23 +457,27 @@ function stopSavedStockInterval() {
 
 function expandFooterFunc() {
     footer.style.height  = '50%';
+    footer.style.boxShadow = '1px 1px 15px rgba(0,0,0,0.5)';
     footerContent.style.display = 'none';
     expandFooter.style.opacity = '0';
     expandFooter.style.zIndex = '0';
     contractFooter.style.opacity = '1';
     contractFooter.style.zIndex = '1';
     footerContentExpanded.style.display = 'flex';
+    pauseTicker.style.display = 'none';
     getExpandedInfo();
 }
 
 function contractFooterFunc() {
     footer.style.height = '75px';
+    footer.style.boxShadow = '1px 1px 15px rgba(0,0,0,0.0)';
     footerContent.style.display = 'flex';
     expandFooter.style.opacity = '1';
     expandFooter.style.zIndex = '1';
     contractFooter.style.opacity = '0';
     contractFooter.style.zIndex = '0';
     footerContentExpanded.style.display = 'none';
+    pauseTicker.style.display = 'flex';
 }
 
 function initialize() {
