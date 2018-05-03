@@ -10,9 +10,13 @@ const newsHeader = document.querySelector('.news-header');
 const chartCont = document.querySelector('#chartContainer');
 const EODPriceChange = document.querySelector('#daysChange');
 const displayTypeahead = document.querySelector('.display-typeahead');
+const footer = document.querySelector('.footer');
 const footerContent = document.querySelector('#footerContent');
 const pauseTicker = document.querySelector('.pause-ticker');
 const playTicker = document.querySelector('.play-ticker');
+const expandFooter = document.querySelector('.expand');
+const contractFooter = document.querySelector('.contract');
+const footerContentExpanded = document.querySelector('#footerContentExpanded');
 // const highPrice = document.querySelector('#high .price');
 // const lowPrice = document.querySelector('#low .price');
 
@@ -241,6 +245,10 @@ function searchCompaniesForMatch(e) {
     var inputText = document.querySelector('#symbolInput').value;
     if (e.key === 'Backspace') {
         inputText = inputText.toUpperCase();
+         if(inputText.length <= 1) {
+            displayTypeahead.style.opacity = '0';
+            return;
+         }
     } else {
         inputText = (inputText + e.key).toUpperCase();
     }
@@ -392,6 +400,43 @@ function getSavedStockInfo() {
         });
 }
 
+function getExpandedInfo() {
+    var symbolString = symbolsSaved.map(function (symbol) {
+        return symbol.symbol;
+    }).join(',');
+
+    var savedStockUrl = 'https://api.iextrading.com/1.0/stock/market/batch?symbols=' + symbolString + '&types=quote,news,chart&range=1m&last=5';
+
+    fetch(savedStockUrl)
+        .then(function (blob) {
+            return blob.json()
+                .then(function (data) {
+                    var savedStockInfo = [];
+                    // console.log(data);
+
+                    symbolsSaved.forEach(function (stock) {
+                        var symbol = stock.symbol;
+                        // console.log(data[symbol]);
+                        var savedStock = data[symbol];
+                        savedStockInfo.push((savedStock));
+                    });
+
+                    var savedStockHTML = savedStockInfo.map(function (stock) {
+                        var color;
+                        // console.log(stock.quote);
+                        if (stock.quote.latestPrice > stock.quote.previousClose) {
+                            color = 'green';
+                        } else if (stock.quote.latestPrice < stock.quote.previousClose) {
+                            color = 'red';
+                        }
+                        return ;
+                    }).join('');
+
+                    footerContent.innerHTML = savedStockHTML;
+                });
+        });
+}
+
 function createSavedStockInterval() {
     playTicker.style.display = 'none';
     pauseTicker.style.display = 'flex';
@@ -403,18 +448,40 @@ function stopSavedStockInterval() {
     savedStockIntervalPause = true;
     playTicker.style.display = 'flex';
     pauseTicker.style.display = 'none'
+}
 
+function expandFooterFunc() {
+    footer.style.height  = '50%';
+    footerContent.style.display = 'none';
+    expandFooter.style.opacity = '0';
+    expandFooter.style.zIndex = '0';
+    contractFooter.style.opacity = '1';
+    contractFooter.style.zIndex = '1';
+    footerContentExpanded.style.display = 'flex';
+    getExpandedInfo();
+}
+
+function contractFooterFunc() {
+    footer.style.height = '75px';
+    footerContent.style.display = 'flex';
+    expandFooter.style.opacity = '1';
+    expandFooter.style.zIndex = '1';
+    contractFooter.style.opacity = '0';
+    contractFooter.style.zIndex = '0';
+    footerContentExpanded.style.display = 'none';
 }
 
 function initialize() {
     getStockQuote();
-
+    
     createSavedStockInterval();
 
+    footerContentExpanded.style.display = 'none';
+    
     searchBtn.addEventListener('click', getStockQuote);
     repeatBtn.addEventListener('click', setUpdateLoop);
     saveBtn.addEventListener('click', saveStockToLocalStorage);
-
+    
     window.addEventListener('keypress', isEnterPressed);
     window.addEventListener('keydown', navigateMatchedLi);
 }
